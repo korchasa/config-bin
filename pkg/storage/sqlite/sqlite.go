@@ -37,7 +37,7 @@ func (s *Storage) CreateBin(id uuid.UUID, pass string, unencryptedData string) e
     if err != nil {
         return err
     }
-    defer tx.Rollback()
+    defer rollback(tx)
 
     _, err = tx.Exec("INSERT INTO bins (uuid, current_version) VALUES (?, 1)", id)
     if err != nil {
@@ -57,7 +57,7 @@ func (s *Storage) GetBin(id uuid.UUID, pass string) (*pkg.Bin, error) {
     if err != nil {
         return nil, err
     }
-    defer tx.Rollback()
+    defer rollback(tx)
 
     bin, err := s.getAndDecrypt(id, pass, tx)
     if err != nil {
@@ -81,7 +81,12 @@ func (s *Storage) getAndDecrypt(id uuid.UUID, pass string, tx *sql.Tx) (*pkg.Bin
     if err != nil {
         return nil, err
     }
-    defer rows.Close()
+    defer func() {
+        err := rows.Close()
+        if err != nil {
+            log.Errorf("failed to close rows: %v", err)
+        }
+    }()
 
     for rows.Next() {
         config := pkg.Configuration{}
@@ -104,7 +109,7 @@ func (s *Storage) UpdateBin(id uuid.UUID, pass string, unencryptedData string) e
     if err != nil {
         return err
     }
-    defer tx.Rollback()
+    defer rollback(tx)
 
     bin, err := s.getAndDecrypt(id, pass, tx)
     if err != nil {
@@ -134,7 +139,7 @@ func (s *Storage) RollbackBin(id uuid.UUID, pass string, version int) error {
     if err != nil {
         return err
     }
-    defer tx.Rollback()
+    defer rollback(tx)
 
     bin, err := s.getAndDecrypt(id, pass, tx)
     if err != nil {
@@ -171,4 +176,11 @@ func (s *Storage) IsReady() bool {
         return false
     }
     return true
+}
+
+func rollback(tx *sql.Tx) {
+    err := tx.Rollback()
+    if err != nil {
+        log.Errorf("failed to rollback transaction: %v", err)
+    }
 }

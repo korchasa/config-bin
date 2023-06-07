@@ -38,7 +38,7 @@ func main() {
     metrics := prometheus.New()
 
     httpServer := http.NewServer(store, metrics, tplProvider)
-    err = httpServer.Run("127.0.0.1:8080")
+    err = httpServer.Run("localhost:8080")
     if err != nil {
         log.Fatal(err)
     }

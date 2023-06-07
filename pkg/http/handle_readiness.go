@@ -6,11 +6,9 @@ import "net/http"
 func (s *Server) handleReadiness() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
         if s.store.IsReady() {
-            w.WriteHeader(http.StatusOK)
-            _, _ = w.Write([]byte("readiness:OK"))
+            s.sendOKResponse(w, http.StatusOK, "readiness:OK")
         } else {
-            w.WriteHeader(http.StatusServiceUnavailable)
-            _, _ = w.Write([]byte("readiness:FAIL"))
+            s.sendOKResponse(w, http.StatusServiceUnavailable, "readiness:FAIL")
         }
     }
 }
