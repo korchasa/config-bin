@@ -1,14 +1,80 @@
 {{template "main" .}}
 {{define "title"}}{{.Title}}{{end}}
 {{define "content"}}
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <h1>{{.Title}}</h1>
-            </div>
-        </div>
-        <div class="row">
-
+    <div>
+        <h1>{{.Title}}</h1>
+        <div>
+            <form onsubmit="submitForm(event)">
+                <div class="grid">
+                    <label for="uuid">
+                        UUID:
+                        <input type="text" id="uuid" name="uuid" required>
+                    </label>
+                    <label for="password">
+                        Password:
+                        <input type="text" id="password" name="password" required>
+                    </label>
+                </div>
+                <label for="text">Text:</label>
+                <textarea id="text" name="text" rows="20"></textarea>
+                <input type="submit" value="Submit">
+            </form>
         </div>
     </div>
+    <script>
+        // Function to generate a UUID
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0,
+                    v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // Function to generate a password
+        function generatePassword() {
+            var length = 8,
+                charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+                retVal = "";
+            for (var i = 0, n = charset.length; i < length; ++i) {
+                retVal += charset.charAt(Math.floor(Math.random() * n));
+            }
+            return retVal;
+        }
+
+        // Function to handle form submission
+        function submitForm(event) {
+            event.preventDefault();
+
+            const uuid = document.getElementById('uuid').value;
+            const password = document.getElementById('password').value;
+            const text = document.getElementById('text').value;
+
+            fetch(`/api/v1/${uuid}`, {
+                method: 'POST',
+                headers: {
+                    'X-ConfigBin-Password': password,
+                    'Content-Type': 'application/json',
+                },
+                body: text
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.Success) {
+                        alert('Form submitted successfully!');
+                    } else {
+                        alert(`Error: ${data.Error.Code} - ${data.Error.Message}`);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        }
+
+        // Function to populate the form with UUID and password
+        window.onload = function() {
+            document.getElementById('uuid').value = generateUUID();
+            document.getElementById('password').value = generatePassword();
+        }
+    </script>
 {{end}}

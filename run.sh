@@ -13,4 +13,5 @@ echo "### Run producer locally"
       --port 28080 \
       --appPort 8080 \
       --build bin/run \
+      --all \
       run
