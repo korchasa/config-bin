@@ -55,6 +55,7 @@ func (s *Server) Run(address string) error {
     s.router.
         HandleFunc("/", s.logRequest(s.handleRoot())).
         Methods("GET")
+    s.router.NotFoundHandler = s.logRequest(s.handleNotFound())
     httpServer := &http.Server{
         Addr:         address,
         ReadTimeout:  5 * time.Minute,

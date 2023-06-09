@@ -3,13 +3,8 @@
 {{define "content"}}
     <hgroup>
         <h1><a href="/">ConfigBin</a></h1>
+        <h2>{{.Code}}</h2>
     </hgroup>
 
-    <h2>Error</h2>
-    <blockquote>
-        {{.Message}}
-        <footer>
-            <cite>{{.Code}}</cite>
-        </footer>
-    </blockquote>
+    <h3>Error: {{.Message}}</h3>
 {{end}}
