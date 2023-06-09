@@ -1,93 +1,43 @@
 {{template "main" .}}
-{{define "title"}}{{.Title}}{{end}}
+{{define "title"}}Create new{{end}}
 {{define "content"}}
-    <style>
-        .CodeMirror {
-            height: auto;
-            font-size: 0.7rem;
-        }
-    </style>
-    <h1>{{.Title}}</h1>
-    <form onsubmit="submitForm(event)">
+    <hgroup>
+        <h1><a href="/">ConfigBin</a></h1>
+        <h2>Create new</h2>
+    </hgroup>
+
+    <form id="form" method="post" enctype="application/x-www-form-urlencoded" action="/create">
         <div class="grid">
             <label for="uuid">
                 UUID:
-                <input type="text" id="uuid" name="uuid" required>
+                <input type="text" id="uuid" name="uuid" value="{{.ID}}" required>
             </label>
             <label for="password">
                 Password:
-                <input type="text" id="password" name="password" required>
+                <input type="text" id="password" name="password" value="{{.Password}}" required>
             </label>
         </div>
-        <label for="text">Text:</label>
-        <textarea id="text" name="text" rows="30"></textarea></form>
+        <label for="content">Text:</label>
+        <textarea id="content" name="content" rows="30">{
+    "foo": "bar"
+}</textarea>
         <br/>
         <input type="submit" value="Create Bin">
     </form>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css" integrity="sha512-uf06llspW44/LZpHzHT6qBOIVODjWtv4MxCricRxkzvopAlSWnTf6hpZTFxuuZcuNE9CBQhqE0Seu1CoRk84nQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.min.css" integrity="sha512-kqCOYFDdyQF4JM8RddA6rMBi9oaLdR0aEACdB95Xl1EgaBhaXMIe8T4uxmPitfq4qRmHqo+nBU2d1l+M4zUx1g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/monokai.min.css" integrity="sha512-R6PH4vSzF2Yxjdvb2p2FA06yWul+U0PDDav4b/od/oXf9Iw37zl10plvwOXelrjV2Ai7Eo3vyHeyFUjhXdBCVQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js" integrity="sha512-8RnEqURPUc5aqFEN04aQEiPlSAdE0jlFS/9iGgUyNtwFnSKCXhmB6ZTNl7LnDtDWKabJIASzXrzD0K+LYexU9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
-        // Function to generate a UUID
-        function generateUUID() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = Math.random() * 16 | 0,
-                    v = c === 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
+        window.onload = () => {
+            const cm = CodeMirror.fromTextArea(document.getElementById("content"), {
+                lineNumbers: true,
+                theme: "monokai",
+                mode: { name: "javascript", json: true},
+                lineWrapping: true,
+                autofocus: true
             });
+            cm.setSize(null, "auto");
         }
-
-        // Function to generate a password
-        function generatePassword() {
-            var length = 8,
-                charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-                retVal = "";
-            for (var i = 0, n = charset.length; i < length; ++i) {
-                retVal += charset.charAt(Math.floor(Math.random() * n));
-            }
-            return retVal;
-        }
-
-        // Function to handle form submission
-        function submitForm(event) {
-            event.preventDefault();
-
-            const uuid = document.getElementById('uuid').value;
-            const password = document.getElementById('password').value;
-            const text = document.getElementById('text').value;
-
-            fetch(`/api/v1/${uuid}`, {
-                method: 'POST',
-                headers: {
-                    'X-ConfigBin-Password': password,
-                    'Content-Type': 'application/json',
-                },
-                body: text
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.Success) {
-                        alert('Form submitted successfully!');
-                    } else {
-                        alert(`Error: ${data.Error.Code} - ${data.Error.Message}`);
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                });
-        }
-
-        // Function to populate the form with UUID and password
-        window.onload = function() {
-            document.getElementById('uuid').value = generateUUID();
-            document.getElementById('password').value = generatePassword();
-        }
-
-        const editor = CodeMirror.fromTextArea(document.getElementById("text"), {
-            lineNumbers: true,
-            theme: "darcula",
-            mode: "json"
-        });
-
     </script>
 {{end}}

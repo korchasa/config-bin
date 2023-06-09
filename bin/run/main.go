@@ -21,10 +21,15 @@ func init() {
     )
 }
 
+var (
+    listen     = "localhost:8080"
+    sqlitePath = "var/db.sqlite"
+)
+
 func main() {
     enc := aes.NewAESEncryptor()
 
-    store, err := sqlite.NewSqliteStorage("var/db.sqlite", enc)
+    store, err := sqlite.NewSqliteStorage(sqlitePath, enc)
     if err != nil {
         log.Fatal(err)
     }
@@ -38,7 +43,7 @@ func main() {
     metrics := prometheus.New()
 
     httpServer := http.NewServer(store, metrics, tplProvider)
-    err = httpServer.Run("localhost:8080")
+    err = httpServer.Run(listen)
     if err != nil {
         log.Fatal(err)
     }

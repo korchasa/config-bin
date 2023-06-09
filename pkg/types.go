@@ -6,15 +6,13 @@ import (
 )
 
 type Bin struct {
-    ID             uuid.UUID
-    CurrentVersion int
-    History        []Configuration
+    ID        uuid.UUID
+    Data      string
+    Version   int
+    CreatedAt time.Time
+    History   []Bin
 }
 
-type Configuration struct {
-    EncryptedData   string
-    UnencryptedData string
-    Version         int
-    CreatedAt       time.Time
-    Format          string
+func (b *Bin) GetVersion() int {
+    return b.Version
 }

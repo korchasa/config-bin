@@ -1,0 +1,15 @@
+{{template "main" .}}
+{{define "title"}}Error{{end}}
+{{define "content"}}
+    <hgroup>
+        <h1><a href="/">ConfigBin</a></h1>
+    </hgroup>
+
+    <h2>Error</h2>
+    <blockquote>
+        {{.Message}}
+        <footer>
+            <cite>{{.Code}}</cite>
+        </footer>
+    </blockquote>
+{{end}}

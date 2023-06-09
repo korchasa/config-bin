@@ -1,14 +1,39 @@
 {{template "main" .}}
-{{define "title"}}{{.Title}}{{end}}
+{{define "title"}}Bin{{end}}
 {{define "content"}}
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <h1>{{.Title}}</h1>
-            </div>
-        </div>
-        <div class="row">
+    <hgroup>
+        <h1><a href="/">ConfigBin</a></h1>
+        <h2>{{.ID}}</h2>
+    </hgroup>
 
-        </div>
-    </div>
+    <h4>Bin content:</h4>
+    <form id="form" method="post" action="/{{.ID}}/update" enctype="application/x-www-form-urlencoded">
+        <textarea id="content" name="content" rows="40">{{.Data}}</textarea>
+        <br/>
+        <input type="submit" value="Update Bin">
+    </form>
+
+    <h4>History:</h4>
+    <ul>
+        {{range .History}}
+            <details>
+                <summary>Version {{.Version}}, {{.CreatedAt | ago}} ago</summary>
+                <pre><code>{{.Data}}</code></pre>
+            </details>
+        {{end}}
+    </ul>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css" integrity="sha512-uf06llspW44/LZpHzHT6qBOIVODjWtv4MxCricRxkzvopAlSWnTf6hpZTFxuuZcuNE9CBQhqE0Seu1CoRk84nQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/monokai.min.css" integrity="sha512-R6PH4vSzF2Yxjdvb2p2FA06yWul+U0PDDav4b/od/oXf9Iw37zl10plvwOXelrjV2Ai7Eo3vyHeyFUjhXdBCVQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js" integrity="sha512-8RnEqURPUc5aqFEN04aQEiPlSAdE0jlFS/9iGgUyNtwFnSKCXhmB6ZTNl7LnDtDWKabJIASzXrzD0K+LYexU9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        const cm = CodeMirror.fromTextArea(document.getElementById("content"), {
+            lineNumbers: true,
+            theme: "monokai",
+            mode: { name: "javascript", json: true},
+            lineWrapping: true,
+            autofocus: true
+        });
+        cm.setSize(null, "auto");
+    </script>
 {{end}}

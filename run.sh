@@ -14,4 +14,7 @@ echo "### Run producer locally"
       --appPort 8080 \
       --build bin/run \
       --all \
+      --excludeDir ./var \
+      --excludeDir ./vendor \
+      --excludeDir ./.git \
       run

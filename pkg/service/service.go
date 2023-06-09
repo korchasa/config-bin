@@ -42,11 +42,3 @@ func (s *Service) UpdateBin(id uuid.UUID, pass string, unencryptedData string) e
     }
     return nil
 }
-
-func (s *Service) RollbackBin(id uuid.UUID, pass string, version int) error {
-    err := s.store.RollbackBin(id, pass, version)
-    if err != nil {
-        return fmt.Errorf("failed to get bin: %v", err)
-    }
-    return nil
-}

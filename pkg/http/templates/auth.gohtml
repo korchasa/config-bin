@@ -1,0 +1,25 @@
+{{template "main" .}}
+{{define "title"}}Bin{{end}}
+{{define "content"}}
+    <hgroup>
+        <h1><a href="/">ConfigBin</a></h1>
+        <h2>Enter the bin password</h2>
+    </hgroup>
+
+    <div class="editor-section">
+        <div>
+            <h4>Bin content:</h4>
+            <form id="form" method="post" action="/{{.ID}}/auth" enctype="application/x-www-form-urlencoded">
+                <label for="uuid">
+                    UUID:
+                    <input type="text" id="uuid" name="uuid" value="{{.ID}}" readonly>
+                </label>
+                <label for="password">
+                    Password:
+                    <input type="text" id="password" name="password" required>
+                </label>
+                <input type="submit" value="Decrypt Bin">
+            </form>
+        </div>
+    </div>
+{{end}}

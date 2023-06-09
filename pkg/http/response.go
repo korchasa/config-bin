@@ -2,12 +2,16 @@ package http
 
 import (
     "encoding/json"
+    "fmt"
     log "github.com/sirupsen/logrus"
     "net/http"
 )
 
 // handleError sends error response
 func (s *Server) handleError(r *http.Request, w http.ResponseWriter, httpStatus int, code string, err error) {
+    if err == nil {
+        err = fmt.Errorf("unknown error")
+    }
     log.WithFields(log.Fields{"code": code}).Warnf("ERROR %s: %v", r.RequestURI, err)
     if w != nil {
         s.sendResponse(w, httpStatus, &ResultResponseStruct{
@@ -21,6 +25,27 @@ func (s *Server) handleError(r *http.Request, w http.ResponseWriter, httpStatus 
                 Message: err.Error(),
             },
         })
+    }
+}
+
+// handleError sends error response
+func (s *Server) handleErrorHTML(r *http.Request, w http.ResponseWriter, httpStatus int, code string, err error) {
+    if err == nil {
+        err = fmt.Errorf("unknown error")
+    }
+    log.WithFields(log.Fields{"code": code}).Warnf("ERROR(html page) %s: %v", r.RequestURI, err)
+    tpl := s.tplProvider.MustGet("error.gohtml")
+    if w != nil {
+        err = tpl.Execute(w, struct {
+            Code    string
+            Message string
+        }{
+            Code:    code,
+            Message: err.Error(),
+        })
+        if err != nil {
+            log.Errorf("errors encoding error body to html, body: %v", err)
+        }
     }
 }
 
