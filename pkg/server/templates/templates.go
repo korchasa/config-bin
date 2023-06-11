@@ -18,10 +18,6 @@ type Templates struct {
     templates map[string]*template.Template
 }
 
-type Provider interface {
-    MustGet(name string) *template.Template
-}
-
 func Build() (*Templates, error) {
     ts := make(map[string]*template.Template)
     tmplFiles, err := fs.ReadDir(files, ".")

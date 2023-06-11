@@ -1,4 +1,4 @@
-package http
+package server
 
 import (
     log "github.com/sirupsen/logrus"

@@ -1,8 +1,8 @@
-package http
+package server
 
 import (
     "configBin/pkg"
-    "configBin/pkg/http/ui"
+    "configBin/pkg/server/utils"
     "net/http"
 )
 
@@ -11,18 +11,18 @@ func (s *Server) handleBinShow() http.HandlerFunc {
     binTpl := s.tplProvider.MustGet("bin.gohtml")
     authTpl := s.tplProvider.MustGet("auth.gohtml")
     return func(w http.ResponseWriter, r *http.Request) {
-        bid, err := ui.ExtractBIDFromPathVar(r)
+        bid, err := utils.ExtractBIDFromPathVar(r)
         if err != nil {
-            s.handleErrorHTML(r, w, http.StatusBadRequest, "invalid_bin_id", err)
+            s.resp.HTMLError(r, w, http.StatusBadRequest, "invalid_bin_id", err)
             return
         }
 
-        pass := ui.ReadPassCookie(r, *bid)
+        pass := utils.ReadPassCookie(r, *bid)
         if pass == "" {
             bin := pkg.Bin{ID: *bid}
             err = authTpl.Execute(w, bin)
             if err != nil {
-                s.handleErrorHTML(r, w, http.StatusInternalServerError, "cant_render_template", err)
+                s.resp.HTMLError(r, w, http.StatusInternalServerError, "cant_render_template", err)
                 return
             }
             return
@@ -30,13 +30,13 @@ func (s *Server) handleBinShow() http.HandlerFunc {
 
         bin, err := s.store.GetBin(*bid, pass)
         if err != nil {
-            s.handleErrorHTML(r, w, http.StatusBadRequest, "cant_get_bin", err)
+            s.resp.HTMLError(r, w, http.StatusBadRequest, "cant_get_bin", err)
             return
         }
 
         err = binTpl.Execute(w, bin)
         if err != nil {
-            s.handleErrorHTML(r, w, http.StatusInternalServerError, "cant_render_template", err)
+            s.resp.HTMLError(r, w, http.StatusInternalServerError, "cant_render_template", err)
             return
         }
         w.WriteHeader(http.StatusOK)

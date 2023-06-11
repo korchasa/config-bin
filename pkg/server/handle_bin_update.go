@@ -1,7 +1,7 @@
-package http
+package server
 
 import (
-    "configBin/pkg/http/ui"
+    "configBin/pkg/server/utils"
     "fmt"
     log "github.com/sirupsen/logrus"
     "net/http"
@@ -10,29 +10,29 @@ import (
 // handleBinUpdate is the handler to update a bin.
 func (s *Server) handleBinUpdate() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
-        bid, err := ui.ExtractBIDFromPathVar(r)
+        bid, err := utils.ExtractBIDFromPathVar(r)
         if err != nil {
-            s.handleErrorHTML(r, w, http.StatusBadRequest, "invalid_bin_id", err)
+            s.resp.HTMLError(r, w, http.StatusBadRequest, "invalid_bin_id", err)
             return
         }
 
-        pass := ui.ReadPassCookie(r, *bid)
+        pass := utils.ReadPassCookie(r, *bid)
 
         err = r.ParseForm()
         if err != nil {
-            s.handleErrorHTML(r, w, http.StatusBadRequest, "cant_parse_form", err)
+            s.resp.HTMLError(r, w, http.StatusBadRequest, "cant_parse_form", err)
             return
         }
 
         unencryptedData := r.Form.Get("content")
         if unencryptedData == "" {
-            s.handleErrorHTML(r, w, http.StatusBadRequest, "no_content", fmt.Errorf("content is empty"))
+            s.resp.HTMLError(r, w, http.StatusBadRequest, "no_content", fmt.Errorf("content is empty"))
             return
         }
 
         err = s.store.UpdateBin(*bid, pass, unencryptedData)
         if err != nil {
-            s.handleErrorHTML(r, w, http.StatusBadRequest, "cant_update_bin", err)
+            s.resp.HTMLError(r, w, http.StatusBadRequest, "cant_update_bin", err)
             return
         }
 

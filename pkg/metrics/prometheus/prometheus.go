@@ -1,7 +1,6 @@
 package prometheus
 
 import (
-    "configBin/pkg/http"
     prom "github.com/prometheus/client_golang/prometheus"
     "strconv"
     "time"
@@ -18,7 +17,7 @@ type Prometheus struct {
     kafkaRequestsDuration     *prom.HistogramVec
 }
 
-func New() http.Metrics {
+func New() *Prometheus {
     buckets := []float64{0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 60}
     p := &Prometheus{
         requestsTotal: prom.NewCounterVec(

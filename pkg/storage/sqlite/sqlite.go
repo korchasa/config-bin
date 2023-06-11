@@ -27,46 +27,39 @@ func NewSqliteStorage(dbPath string, encryptor storage.Encryptor) (*Storage, err
     }, nil
 }
 
+func (s *Storage) ApplySchema() error {
+    _, err := s.db.Exec(`
+        CREATE TABLE IF NOT EXISTS bins
+        (
+            uuid       TEXT,
+            data       TEXT,
+            version    INTEGER,
+            created_at TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS bins_uuid_uindex ON bins (uuid);
+        `)
+    if err != nil {
+        return fmt.Errorf("failed to create schema: %v", err)
+    }
+    return nil
+}
+
 func (s *Storage) CreateBin(id uuid.UUID, pass string, unencryptedData string) error {
     ed, err := s.encryptor.Encrypt(unencryptedData, pass)
     if err != nil {
         return fmt.Errorf("failed to encrypt data: %v", err)
     }
 
-    tx, err := s.db.Begin()
+    _, err = s.db.Exec("INSERT INTO bins (uuid, data, version, created_at) VALUES (?, ?, 0, ?)", id, ed, time.Now())
     if err != nil {
-        return err
+        return fmt.Errorf("failed to insert bin: %v", err)
     }
-    defer rollback(tx)
-
-    _, err = tx.Exec("INSERT INTO bins (uuid, data, version, created_at) VALUES (?, ?, 0, ?)", id, ed, time.Now())
-    if err != nil {
-        return err
-    }
-
-    return tx.Commit()
+    return nil
 }
 
 func (s *Storage) GetBin(id uuid.UUID, pass string) (*pkg.Bin, error) {
-    tx, err := s.db.Begin()
-    if err != nil {
-        return nil, err
-    }
-    defer rollback(tx)
-
-    bin, err := s.getAndDecrypt(id, pass, tx)
-    if err != nil {
-        return nil, err
-    }
-
-    err = tx.Commit()
-
-    return bin, err
-}
-
-func (s *Storage) getAndDecrypt(id uuid.UUID, pass string, tx *sql.Tx) (*pkg.Bin, error) {
     bin := &pkg.Bin{}
-    rows, err := tx.Query("SELECT uuid, data, version, created_at FROM bins WHERE uuid = ? ORDER BY version DESC", id)
+    rows, err := s.db.Query("SELECT uuid, data, version, created_at FROM bins WHERE uuid = ? ORDER BY version DESC", id)
     if err != nil {
         return nil, err
     }
@@ -87,6 +80,8 @@ func (s *Storage) getAndDecrypt(id uuid.UUID, pass string, tx *sql.Tx) (*pkg.Bin
         if err != nil {
             return nil, fmt.Errorf("failed to decrypt first row data: %v", err)
         }
+    } else {
+        return nil, nil
     }
 
     bin.History = make([]pkg.Bin, 0)
@@ -108,13 +103,7 @@ func (s *Storage) getAndDecrypt(id uuid.UUID, pass string, tx *sql.Tx) (*pkg.Bin
 }
 
 func (s *Storage) UpdateBin(id uuid.UUID, pass string, unencryptedData string) error {
-    tx, err := s.db.Begin()
-    if err != nil {
-        return err
-    }
-    defer rollback(tx)
-
-    bin, err := s.getAndDecrypt(id, pass, tx)
+    _, err := s.GetBin(id, pass)
     if err != nil {
         return fmt.Errorf("failed to get bin: %v", err)
     }
@@ -124,12 +113,8 @@ func (s *Storage) UpdateBin(id uuid.UUID, pass string, unencryptedData string) e
         return fmt.Errorf("failed to encrypt data: %v", err)
     }
 
-    _, err = tx.Exec("INSERT INTO bins (uuid, data, version, created_at) VALUES (?, ?, ?, ?)", id, data, bin.Version+1, time.Now())
-    if err != nil {
-        return err
-    }
-
-    return tx.Commit()
+    _, err = s.db.Exec("INSERT INTO bins (uuid, data, version, created_at) VALUES (?, ?, (SELECT COALESCE(MAX(version), 0) + 1 FROM bins WHERE uuid = ?), ?)", id, data, id, time.Now())
+    return err
 }
 
 func (s *Storage) Close() {
@@ -146,11 +131,4 @@ func (s *Storage) IsReady() bool {
         return false
     }
     return true
-}
-
-func rollback(tx *sql.Tx) {
-    err := tx.Rollback()
-    if err != nil {
-        log.Errorf("failed to rollback transaction: %v", err)
-    }
 }

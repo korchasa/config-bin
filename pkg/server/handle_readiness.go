@@ -1,4 +1,4 @@
-package http
+package server
 
 import "net/http"
 
@@ -6,9 +6,9 @@ import "net/http"
 func (s *Server) handleReadiness() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
         if s.store.IsReady() {
-            s.sendOKResponse(w, http.StatusOK, "readiness:OK")
+            s.resp.JSONSuccess(w, http.StatusOK, "readiness:OK")
         } else {
-            s.sendOKResponse(w, http.StatusServiceUnavailable, "readiness:FAIL")
+            s.resp.JSONSuccess(w, http.StatusServiceUnavailable, "readiness:FAIL")
         }
     }
 }
