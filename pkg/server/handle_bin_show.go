@@ -11,13 +11,13 @@ func (s *Server) handleBinShow() http.HandlerFunc {
 	binTpl := s.tplProvider.MustGet("bin.gohtml")
 	authTpl := s.tplProvider.MustGet("auth.gohtml")
 	return func(w http.ResponseWriter, r *http.Request) {
-		bid, err := utils.ExtractBIDFromPathVar(r)
+		bid, err := utils.ExtractBinIDFromPathVar(r)
 		if err != nil {
 			s.resp.HTMLError(r, w, http.StatusBadRequest, "invalid_bin_id", err)
 			return
 		}
 
-		pass := utils.ReadPassCookie(r, *bid)
+		pass := utils.ReadPasswordCookie(r, *bid)
 		if pass == "" {
 			bin := pkg.Bin{ID: *bid}
 			err = authTpl.Execute(w, bin)

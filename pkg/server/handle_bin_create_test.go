@@ -15,7 +15,7 @@ func TestHandleBinCreate(t *testing.T) {
 	// Test case: Successful bin creation
 	t.Run("successful bin creation", func(t *testing.T) {
 		bid := uuid.New().String()
-		req := formRequest(formRequestSpec{
+		req := requestWithForm(formRequestSpec{
 			method:   "POST",
 			path:     "/create",
 			formData: "uuid=" + bid + "&password=test&content=test_content",
@@ -31,7 +31,7 @@ func TestHandleBinCreate(t *testing.T) {
 
 	// Test case: Missing UUID
 	t.Run("missing uuid", func(t *testing.T) {
-		req := formRequest(formRequestSpec{
+		req := requestWithForm(formRequestSpec{
 			method:   "POST",
 			path:     "/create",
 			formData: "password=test&content=test_content",
@@ -46,7 +46,7 @@ func TestHandleBinCreate(t *testing.T) {
 
 	// Test case: Invalid UUID
 	t.Run("invalid uuid", func(t *testing.T) {
-		req := formRequest(formRequestSpec{
+		req := requestWithForm(formRequestSpec{
 			method:   "POST",
 			path:     "/create",
 			formData: "uuid=invalid&password=test&content=test_content",
@@ -62,7 +62,7 @@ func TestHandleBinCreate(t *testing.T) {
 	// Test case: Missing password
 	t.Run("missing password", func(t *testing.T) {
 		bid := uuid.New().String()
-		req := formRequest(formRequestSpec{
+		req := requestWithForm(formRequestSpec{
 			method:   "POST",
 			path:     "/create",
 			formData: "uuid=" + bid + "&content=test_content",
@@ -78,7 +78,7 @@ func TestHandleBinCreate(t *testing.T) {
 	// Test case: Missing content
 	t.Run("missing content", func(t *testing.T) {
 		bid := uuid.New().String()
-		req := formRequest(formRequestSpec{
+		req := requestWithForm(formRequestSpec{
 			method:   "POST",
 			path:     "/create",
 			formData: "uuid=" + bid + "&password=test",

@@ -47,19 +47,31 @@ type formRequestSpec struct {
 	method         string
 	path           string
 	formData       string
-	cookieBid      uuid.UUID
+	cookieBinID    uuid.UUID
 	cookiePassword string
 }
 
-func formRequest(spec formRequestSpec) *http.Request {
+func requestWithForm(spec formRequestSpec) *http.Request {
 	form := strings.NewReader(spec.formData)
 	req, _ := http.NewRequest(spec.method, spec.path, form)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	return req
 }
 
-func formRequestWithCookie(spec formRequestSpec) *http.Request {
-	req := formRequest(spec)
-	req.AddCookie(utils.PassCookie(spec.cookieBid, spec.cookiePassword))
+func requestWithFormAndCookie(spec formRequestSpec) *http.Request {
+	req := requestWithForm(spec)
+	req.AddCookie(utils.PasswordCookie(spec.cookieBinID, spec.cookiePassword))
+	return req
+}
+
+type apiRequestSpec struct {
+	method         string
+	path           string
+	headerPassword string
+}
+
+func requestWithPassHeader(spec apiRequestSpec) *http.Request {
+	req, _ := http.NewRequest(spec.method, spec.path, nil)
+	req.Header.Add(utils.PasswordHeader, spec.headerPassword)
 	return req
 }

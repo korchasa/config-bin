@@ -18,10 +18,10 @@ func TestHandleBinShow(t *testing.T) {
 
 	// Test case: Successful bin show
 	t.Run("successful bin show", func(t *testing.T) {
-		req := formRequestWithCookie(formRequestSpec{
+		req := requestWithFormAndCookie(formRequestSpec{
 			method:         "GET",
 			path:           "/" + binID.String(),
-			cookieBid:      binID,
+			cookieBinID:    binID,
 			cookiePassword: "test",
 		})
 		resp := httptest.NewRecorder()
@@ -34,10 +34,10 @@ func TestHandleBinShow(t *testing.T) {
 
 	// Test case: Invalid bin ID
 	t.Run("invalid bin id", func(t *testing.T) {
-		req := formRequestWithCookie(formRequestSpec{
+		req := requestWithFormAndCookie(formRequestSpec{
 			method:         "GET",
 			path:           "/invalid",
-			cookieBid:      binID,
+			cookieBinID:    binID,
 			cookiePassword: "test",
 		})
 		resp := httptest.NewRecorder()
@@ -50,10 +50,10 @@ func TestHandleBinShow(t *testing.T) {
 
 	// Test case: Not existed bin ID
 	t.Run("not existed bin id", func(t *testing.T) {
-		req := formRequestWithCookie(formRequestSpec{
+		req := requestWithFormAndCookie(formRequestSpec{
 			method:         "GET",
-			path:           "/9570f2e0-d5c8-4003-93fb-dbd60b54c2df",
-			cookieBid:      uuid.MustParse("9570f2e0-d5c8-4003-93fb-dbd60b54c2df"),
+			path:           "/00000000-0000-0000-0000-000000000000",
+			cookieBinID:    uuid.MustParse("00000000-0000-0000-0000-000000000000"),
 			cookiePassword: "test",
 		})
 		resp := httptest.NewRecorder()
@@ -66,10 +66,10 @@ func TestHandleBinShow(t *testing.T) {
 
 	// Test case: Missing password cookie
 	t.Run("missing password cookie", func(t *testing.T) {
-		req := formRequestWithCookie(formRequestSpec{
+		req := requestWithFormAndCookie(formRequestSpec{
 			method:         "GET",
 			path:           "/" + binID.String(),
-			cookieBid:      binID,
+			cookieBinID:    binID,
 			cookiePassword: "",
 		})
 		resp := httptest.NewRecorder()
