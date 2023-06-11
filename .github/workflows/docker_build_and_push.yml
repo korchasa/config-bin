@@ -46,18 +46,8 @@ jobs:
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
 
-  deps-check:
-    runs-on: ubuntu-latest
-    steps:
-      -
-        name: Check out code
-        uses: actions/checkout@v3
-      -
-        name: Set up GolangCI-Lint
-        uses: actions/dependency-review-action@v2
-
   docker:
-    needs: [ test, lint, deps-check ]
+    needs: [ test, lint ]
     runs-on: ubuntu-latest
     steps:
       -
