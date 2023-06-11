@@ -1,59 +1,65 @@
 package server_test
 
 import (
-    "configBin/pkg/encryptor/aes"
-    "configBin/pkg/metrics/fake"
-    "configBin/pkg/server"
-    "configBin/pkg/server/responder"
-    "configBin/pkg/server/templates"
-    "configBin/pkg/server/utils"
-    "configBin/pkg/storage/sqlite"
-    "fmt"
-    "github.com/google/uuid"
-    "net/http"
-    "strings"
+	"configBin/pkg/encryptor/aes"
+	"configBin/pkg/metrics/fake"
+	"configBin/pkg/server"
+	"configBin/pkg/server/responder"
+	"configBin/pkg/server/templates"
+	"configBin/pkg/server/utils"
+	"configBin/pkg/storage/sqlite"
+	"fmt"
+	"github.com/google/uuid"
+	"net/http"
+	"os"
+	"strings"
 )
 
 func NewTestingServer(sqlitePath string) (*server.Server, server.Storage, error) {
-    enc := aes.NewAESEncryptor()
+	enc := aes.NewAESEncryptor()
 
-    store, err := sqlite.NewSqliteStorage(sqlitePath, enc)
-    if err != nil {
-        return nil, nil, fmt.Errorf("failed to create sqlite storage: %w", err)
-    }
-    err = store.ApplySchema()
-    if err != nil {
-        return nil, nil, fmt.Errorf("failed to apply db schema: %w", err)
-    }
+	err := os.Remove(sqlitePath)
+	if err != nil && !os.IsNotExist(err) {
+		return nil, nil, fmt.Errorf("failed to remove sqlite file: %w", err)
+	}
 
-    tplProvider, err := templates.Build()
-    if err != nil {
-        return nil, nil, fmt.Errorf("failed to build templates: %w", err)
-    }
+	store, err := sqlite.NewSqliteStorage(sqlitePath, enc)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create sqlite storage: %w", err)
+	}
+	err = store.ApplySchema()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to apply db schema: %w", err)
+	}
 
-    resp := responder.New(tplProvider)
-    srv := server.New(store, resp, tplProvider, fake.Fake{})
+	tplProvider, err := templates.Build()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to build templates: %w", err)
+	}
 
-    return srv, store, nil
+	resp := responder.New(tplProvider)
+	srv := server.New(store, resp, tplProvider, fake.Fake{})
+
+	return srv, store, nil
 }
 
 type formRequestSpec struct {
-    method         string
-    path           string
-    formData       string
-    cookieBid      uuid.UUID
-    cookiePassword string
+	method         string
+	path           string
+	formData       string
+	cookieBid      uuid.UUID
+	cookiePassword string
 }
 
 func formRequest(spec formRequestSpec) *http.Request {
-    form := strings.NewReader(spec.formData)
-    req, _ := http.NewRequest(spec.method, spec.path, form)
-    req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-    return req
+	form := strings.NewReader(spec.formData)
+	req, _ := http.NewRequest(spec.method, spec.path, form)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	return req
 }
 
 func formRequestWithCookie(spec formRequestSpec) *http.Request {
-    req := formRequest(spec)
-    req.AddCookie(utils.PassCookie(spec.cookieBid, spec.cookiePassword))
-    return req
+	req := formRequest(spec)
+	req.AddCookie(utils.PassCookie(spec.cookieBid, spec.cookiePassword))
+	return req
 }
