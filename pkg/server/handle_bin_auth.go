@@ -38,14 +38,7 @@ func (s *Server) handleBinAuth() http.HandlerFunc {
             return
         }
 
-        http.SetCookie(w, &http.Cookie{
-            Name:     bid.String(),
-            Value:    pass,
-            Path:     "/",
-            MaxAge:   3600,
-            HttpOnly: true,
-            SameSite: http.SameSiteLaxMode,
-        })
+        http.SetCookie(w, utils.PassCookie(*bid, pass))
 
         log.Infof("bin authed: %s", bid.String())
 

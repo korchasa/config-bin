@@ -45,7 +45,7 @@ func (s *Server) handleBinCreate() http.HandlerFunc {
             return
         }
 
-        utils.WritePassCookie(w, bid, pass)
+        http.SetCookie(w, utils.PassCookie(bid, pass))
 
         log.Infof("bin created: %s", bid.String())
 

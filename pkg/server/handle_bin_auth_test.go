@@ -6,7 +6,6 @@ import (
     "github.com/stretchr/testify/assert"
     "net/http"
     "net/http/httptest"
-    "strings"
     "testing"
 )
 
@@ -21,22 +20,26 @@ func TestHandleBinAuth(t *testing.T) {
 
     // Test case: Successful bin authentication
     t.Run("successful bin authentication", func(t *testing.T) {
-        form := strings.NewReader("password=test")
-        req, _ := http.NewRequest("POST", "/"+binID+"/auth", form)
-        req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+        req := formRequest(formRequestSpec{
+            method:   "POST",
+            path:     "/" + binID + "/auth",
+            formData: "password=test",
+        })
         resp := httptest.NewRecorder()
 
         srv.ServeHTTP(resp, req)
 
         assert.Equal(t, http.StatusFound, resp.Code)
-        assert.Contains(t, resp.Header().Get("Location"), binID)
+        assert.Equal(t, "/"+binID, resp.Header().Get("Location"))
     })
 
     // Test case: Invalid bin ID
     t.Run("invalid bin id", func(t *testing.T) {
-        form := strings.NewReader("password=test&text=test_content")
-        req, _ := http.NewRequest("POST", "/invalid/auth", form)
-        req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+        req := formRequest(formRequestSpec{
+            method:   "POST",
+            path:     "/invalid/auth",
+            formData: "password=test&text=test_content",
+        })
         resp := httptest.NewRecorder()
 
         srv.ServeHTTP(resp, req)
@@ -47,9 +50,11 @@ func TestHandleBinAuth(t *testing.T) {
 
     // Test case: Not existed bin ID
     t.Run("not existed bin id", func(t *testing.T) {
-        form := strings.NewReader("password=test&text=test_content")
-        req, _ := http.NewRequest("POST", "/9570f2e0-d5c8-4003-93fb-dbd60b54c2df/auth", form)
-        req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+        req := formRequest(formRequestSpec{
+            method:   "POST",
+            path:     "/9570f2e0-d5c8-4003-93fb-dbd60b54c2df/auth",
+            formData: "password=test&text=test_content",
+        })
         resp := httptest.NewRecorder()
 
         srv.ServeHTTP(resp, req)
@@ -60,9 +65,11 @@ func TestHandleBinAuth(t *testing.T) {
 
     // Test case: Missing password
     t.Run("missing password", func(t *testing.T) {
-        form := strings.NewReader("text=test_content")
-        req, _ := http.NewRequest("POST", "/"+binID+"/auth", form)
-        req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+        req := formRequest(formRequestSpec{
+            method:   "POST",
+            path:     "/" + binID + "/auth",
+            formData: "text=test_content",
+        })
         resp := httptest.NewRecorder()
 
         srv.ServeHTTP(resp, req)

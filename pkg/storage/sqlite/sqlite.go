@@ -36,7 +36,7 @@ func (s *Storage) ApplySchema() error {
             version    INTEGER,
             created_at TIMESTAMP
         );
-        CREATE INDEX IF NOT EXISTS bins_uuid_uindex ON bins (uuid);
+        CREATE INDEX IF NOT EXISTS bins_uuid_version_index ON bins (uuid, version);
         `)
     if err != nil {
         return fmt.Errorf("failed to create schema: %v", err)
@@ -103,9 +103,12 @@ func (s *Storage) GetBin(id uuid.UUID, pass string) (*pkg.Bin, error) {
 }
 
 func (s *Storage) UpdateBin(id uuid.UUID, pass string, unencryptedData string) error {
-    _, err := s.GetBin(id, pass)
+    bin, err := s.GetBin(id, pass)
     if err != nil {
         return fmt.Errorf("failed to get bin: %v", err)
+    }
+    if bin == nil {
+        return fmt.Errorf("bin not found")
     }
 
     data, err := s.encryptor.Encrypt(unencryptedData, pass)

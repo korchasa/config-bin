@@ -5,15 +5,15 @@ import (
     "net/http"
 )
 
-func WritePassCookie(w http.ResponseWriter, bid uuid.UUID, pass string) {
-    http.SetCookie(w, &http.Cookie{
+func PassCookie(bid uuid.UUID, pass string) *http.Cookie {
+    return &http.Cookie{
         Name:     bid.String(),
         Value:    pass,
         Path:     "/",
         MaxAge:   60 * 60 * 24,
         HttpOnly: true,
         SameSite: http.SameSiteLaxMode,
-    })
+    }
 }
 
 func ReadPassCookie(r *http.Request, bid uuid.UUID) string {
