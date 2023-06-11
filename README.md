@@ -1,19 +1,13 @@
 # ConfigBin
 
-Сервис для хранения конфигурационных данных приложений.
+Service for storing configuration data of applications.
 
-- Пользователь может редактировать конфигурационные данные через web-интерфейс, просто указав пароль конкретного bin.
-- Приложение может получать конфигурационные данные простейший HTTP API, используя для авторизации тот же пароль, что и пользователь. Пароль передается через HTTP заголовок `X-ConfigBin-Password`.
-- Идентификатор bin'а генерируется автоматически, в виде UUID.
-- На странице редактирования конфигурационных данных есть примеры кода для различных языков.
-- Конфигурации имеют версии и историю изменений. Пользователь может откатиться к любой версии.
-- Конфигурация шифруется ее паролем. Пароль не хранится в базе данных, поэтому восстановить его невозможно. Пользователь должен самостоятельно сохранить пароль, иначе он не сможет восстановить конфигурацию.
-- В интерфейсе подсвечиваются синтаксические ошибки в конфигурации, в зависимости от формата конфигурации.
+## Features
 
-Основные понятия:
-- bin - это текстовая конфигурация, которая хранится в сервисе. У нее есть идентификатор, пароль, версия и история изменений.
-- версия - это номер версии конфигурации. При изменении конфигурации, версия увеличивается на 1. 
-- история изменений - это список изменений конфигурации. Каждое изменение содержит дату, версию, и дельту изменений.
-
-1. / - главная страница. Форма создания нового bin'а.
-2. /{bid}/authorization - страница авторизации. Пользователь вводит пароль bin'а и получает куку с токеном.
+- The user can edit the configuration data through the web interface, simply by specifying a specific bin password.
+- Third-party applications can receive configuration data with the simplest HTTP API, using the same password as the user for authorization. The password is sent via the HTTP header `X-ConfigBin-Password`.
+- The configuration is encrypted with its password. The password is not stored in the database, so it cannot be recovered. The user has to save the password himself, otherwise he will not be able to restore the configuration.
+- The bin ID is generated automatically as a UUID.
+- TODO: There are code examples for different languages on the configuration data editing page.
+- TODO: Configurations have versions and history. The user can revert to any version.
+- TODO: The interface highlights syntax errors in the configuration, depending on the configuration format.
