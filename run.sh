@@ -7,6 +7,8 @@ echo "### Test all"
   golangci-lint run ./...
   go test -v ./...
 
+source .env
+
 echo "### Run producer locally"
     LISTEN="localhost:8080" \
     gin -i \

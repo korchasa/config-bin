@@ -2,3 +2,5 @@ var
 .idea
 .DS_Store
 gin-bin
+.env
+
