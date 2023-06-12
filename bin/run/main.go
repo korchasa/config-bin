@@ -24,8 +24,8 @@ func init() {
 }
 
 var (
-    listen     = "localhost:8080"
-    sqlitePath = "var/db.sqlite"
+    listen     = ensureEnv("LISTEN")
+    sqlitePath = ensureEnv("SQLITE_PATH")
 )
 
 func main() {
@@ -57,4 +57,12 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
+}
+
+func ensureEnv(name string) string {
+    value := os.Getenv(name)
+    if value == "" {
+        log.Fatalf("%s env is empty", name)
+    }
+    return value
 }
