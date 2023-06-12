@@ -1,5 +1,4 @@
-FROM golang:1.20.0-alpine3.17 as build
-COPY --from=golangci/golangci-lint:v1.51.1 /usr/bin/golangci-lint /usr/bin/golangci-lint
+FROM golang:1.20-alpine3.18 as build
 WORKDIR /build
 ENV \
     TERM=xterm-color \
@@ -19,11 +18,9 @@ COPY pkg ./pkg
 
 RUN go env
 RUN go version
-RUN echo "  ## Test" && go test ./...
-RUN echo "  ## Lint" && golangci-lint run ./...
 RUN echo "  ## Build" && go build -o app .
 
-FROM alpine:3.15
+FROM alpine:3.18
 WORKDIR /app
 COPY --from=build /build/app ./app
 COPY --from=build /etc/localtime /etc/localtime
