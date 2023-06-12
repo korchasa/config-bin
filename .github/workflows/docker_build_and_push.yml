@@ -44,6 +44,7 @@ jobs:
         name: Set up GolangCI-Lint
         uses: golangci/golangci-lint-action@v3
         with:
+          args: --timeout=5m
           version: ${{ env.GOLANGCI_LINT_VERSION }}
 
   docker:
