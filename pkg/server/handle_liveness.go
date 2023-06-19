@@ -4,7 +4,7 @@ import "net/http"
 
 // handleLiveness is the handler to check if the service is alive.
 func (s *Server) handleLiveness() http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        s.resp.JSONSuccess(w, http.StatusOK, "liveness:OK")
-    }
+	return func(w http.ResponseWriter, r *http.Request) {
+		s.resp.JSONSuccess(w, http.StatusOK, "liveness:OK")
+	}
 }

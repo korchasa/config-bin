@@ -1,82 +1,86 @@
 package aes
 
 import (
-    "crypto/aes"
-    "crypto/cipher"
-    "crypto/rand"
-    "crypto/sha256"
-    "encoding/base64"
-    "errors"
-    "io"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
+	"errors"
+	"fmt"
+	"io"
 )
 
-type AESEncryptor struct{}
+var ErrCipherTooShort = errors.New("ciphertext too short")
 
-func NewAESEncryptor() *AESEncryptor {
-    return &AESEncryptor{}
+type Encryptor struct{}
+
+func NewEncryptor() *Encryptor {
+	return &Encryptor{}
 }
 
-func (e *AESEncryptor) Encrypt(data string, password string) (string, error) {
-    hash := createPasswordHash(password)
+func (e *Encryptor) Encrypt(data string, password string) (string, error) {
+	hash := createPasswordHash(password)
 
-    block, err := aes.NewCipher(hash)
-    if err != nil {
-        return "", err
-    }
+	block, err := aes.NewCipher(hash)
+	if err != nil {
+		return "", fmt.Errorf("failed to create new cipher: %w", err)
+	}
 
-    aesGCM, err := cipher.NewGCM(block)
-    if err != nil {
-        return "", err
-    }
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", fmt.Errorf("failed to create new GCM: %w", err)
+	}
 
-    nonce := make([]byte, aesGCM.NonceSize())
-    if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-        return "", err
-    }
+	nonce := make([]byte, aesGCM.NonceSize())
+	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+		return "", fmt.Errorf("failed to read random data: %w", err)
+	}
 
-    ciphertext := aesGCM.Seal(nonce, nonce, []byte(data), nil)
-    return base64.StdEncoding.EncodeToString(ciphertext), nil
+	ciphertext := aesGCM.Seal(nonce, nonce, []byte(data), nil)
+
+	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
 
-func (e *AESEncryptor) Decrypt(data string, password string) (string, error) {
-    hash := createPasswordHash(password)
+func (e *Encryptor) Decrypt(data string, password string) (string, error) {
+	hash := createPasswordHash(password)
 
-    block, err := aes.NewCipher(hash)
-    if err != nil {
-        return "", err
-    }
+	block, err := aes.NewCipher(hash)
+	if err != nil {
+		return "", fmt.Errorf("failed to create new cipher: %w", err)
+	}
 
-    aesGCM, err := cipher.NewGCM(block)
-    if err != nil {
-        return "", err
-    }
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", fmt.Errorf("failed to create new GCM: %w", err)
+	}
 
-    ciphertext, err := base64.StdEncoding.DecodeString(data)
-    if err != nil {
-        return "", err
-    }
+	ciphertext, err := base64.StdEncoding.DecodeString(data)
+	if err != nil {
+		return "", fmt.Errorf("failed to decode base64: %w", err)
+	}
 
-    nonceSize := aesGCM.NonceSize()
-    if len(ciphertext) < nonceSize {
-        return "", errors.New("ciphertext too short")
-    }
+	nonceSize := aesGCM.NonceSize()
+	if len(ciphertext) < nonceSize {
+		return "", ErrCipherTooShort
+	}
 
-    nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
-    plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
-    if err != nil {
-        return "", err
-    }
+	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
+	plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to decrypt: %w", err)
+	}
 
-    return string(plaintext), nil
+	return string(plaintext), nil
 }
 
 func createPasswordHash(password string) []byte {
-    // Create a new hash.
-    h := sha256.New()
-    // Write password to hash.
-    h.Write([]byte(password))
-    // Use the sum as the key.
-    key := h.Sum(nil)
-    // Return the key as a string.
-    return key
+	// Create a new hash.
+	h := sha256.New()
+	// Write password to hash.
+	h.Write([]byte(password))
+	// Use the sum as the key.
+	key := h.Sum(nil)
+	// Return the key as a string.
+	return key
 }

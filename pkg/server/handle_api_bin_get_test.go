@@ -1,81 +1,93 @@
 package server_test
 
 import (
-    "encoding/base64"
-    "fmt"
-    "github.com/google/uuid"
-    "github.com/stretchr/testify/assert"
-    "net/http"
-    "net/http/httptest"
-    "testing"
+	"encoding/base64"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHandleAPIGetBin(t *testing.T) {
-    srv, store, err := NewTestingServer("./test.sqlite")
-    assert.NoError(t, err)
+	srv, store, err := NewTestingServer("./TestHandleAPIGetBin.sqlite")
+	assert.NoError(t, err)
+	t.Parallel()
 
-    binID := uuid.New()
-    binPass := "test:@\""
-    binCredsHeader := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", "any-name", binPass)))
-    err = store.CreateBin(binID, binPass, "test_content")
-    assert.NoError(t, err)
+	binID := uuid.New()
+	binPass := "test:@\""
+	binCredsHeader := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", "any-name", binPass)))
+	err = store.CreateBin(binID, binPass, "test_content")
+	assert.NoError(t, err)
 
-    // Test case: Successful bin retrieval
-    t.Run("successful bin retrieval", func(t *testing.T) {
-        req, _ := http.NewRequest("GET", "/api/v1/"+binID.String(), nil)
-        req.Header.Add("Authorization", "Basic "+binCredsHeader)
-        resp := httptest.NewRecorder()
+	// Test case: Successful bin retrieval
+	t.Run("successful bin retrieval", func(t *testing.T) {
+		t.Parallel()
 
-        srv.ServeHTTP(resp, req)
+		req, _ := http.NewRequest(http.MethodGet, "/api/v1/"+binID.String(), nil)
+		req.Header.Add("Authorization", "Basic "+binCredsHeader)
+		resp := httptest.NewRecorder()
 
-        assert.Equal(t, http.StatusOK, resp.Code)
-        assert.Contains(t, resp.Body.String(), "test_content")
-    })
+		srv.ServeHTTP(resp, req)
 
-    // Test case: Invalid bin ID
-    t.Run("invalid bin id", func(t *testing.T) {
-        req, _ := http.NewRequest("GET", "/api/v1/invalid", nil)
-        req.Header.Add("Authorization", "Basic "+binCredsHeader)
-        resp := httptest.NewRecorder()
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.Contains(t, resp.Body.String(), "test_content")
+	})
 
-        srv.ServeHTTP(resp, req)
+	// Test case: Invalid bin ID
+	t.Run("invalid bin id", func(t *testing.T) {
+		t.Parallel()
 
-        assert.Equal(t, http.StatusBadRequest, resp.Code)
-        assert.Contains(t, resp.Body.String(), "invalid_bin_id")
-    })
+		req, _ := http.NewRequest(http.MethodGet, "/api/v1/invalid", nil)
+		req.Header.Add("Authorization", "Basic "+binCredsHeader)
+		resp := httptest.NewRecorder()
 
-    // Test case: Not existed bin ID
-    t.Run("not existed bin id", func(t *testing.T) {
-        req, _ := http.NewRequest("GET", "/api/v1/00000000-0000-0000-0000-000000000000", nil)
-        req.Header.Add("Authorization", "Basic "+binCredsHeader)
-        resp := httptest.NewRecorder()
+		srv.ServeHTTP(resp, req)
 
-        srv.ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.Contains(t, resp.Body.String(), "invalid_bin_id")
+	})
 
-        assert.Equal(t, http.StatusNotFound, resp.Code)
-        assert.Contains(t, resp.Body.String(), "cant_get_bin")
-    })
+	// Test case: Not existed bin ID
+	t.Run("not existed bin id", func(t *testing.T) {
+		t.Parallel()
 
-    // Test case: Missing password
-    t.Run("missing password", func(t *testing.T) {
-        req, _ := http.NewRequest("GET", "/api/v1/"+binID.String(), nil)
-        resp := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/api/v1/00000000-0000-0000-0000-000000000000", nil)
+		req.Header.Add("Authorization", "Basic "+binCredsHeader)
+		resp := httptest.NewRecorder()
 
-        srv.ServeHTTP(resp, req)
+		srv.ServeHTTP(resp, req)
 
-        assert.Equal(t, http.StatusBadRequest, resp.Code)
-        assert.Contains(t, resp.Body.String(), "empty_password")
-    })
+		assert.Equal(t, http.StatusNotFound, resp.Code)
+		assert.Contains(t, resp.Body.String(), "cant_get_bin")
+	})
 
-    // Test case: Invalid password
-    t.Run("invalid password", func(t *testing.T) {
-        req, _ := http.NewRequest("GET", "/api/v1/"+binID.String(), nil)
-        req.Header.Add("Authorization", "Basic bm90OnZhbGlk")
-        resp := httptest.NewRecorder()
+	// Test case: Missing password
+	t.Run("missing password", func(t *testing.T) {
+		t.Parallel()
 
-        srv.ServeHTTP(resp, req)
+		req, _ := http.NewRequest(http.MethodGet, "/api/v1/"+binID.String(), nil)
+		resp := httptest.NewRecorder()
 
-        assert.Equal(t, http.StatusBadRequest, resp.Code)
-        assert.Contains(t, resp.Body.String(), "cant_get_bin")
-    })
+		srv.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.Contains(t, resp.Body.String(), "empty_password")
+	})
+
+	// Test case: Invalid password
+	t.Run("invalid password", func(t *testing.T) {
+		t.Parallel()
+
+		req, _ := http.NewRequest(http.MethodGet, "/api/v1/"+binID.String(), nil)
+		req.Header.Add("Authorization", "Basic bm90OnZhbGlk")
+		resp := httptest.NewRecorder()
+
+		srv.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.Contains(t, resp.Body.String(), "cant_get_bin")
+	})
 }

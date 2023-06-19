@@ -3,45 +3,48 @@ package server
 import (
 	"configBin/pkg/server/utils"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 )
+
+var ErrBinNotFoundByID = fmt.Errorf("no bin found by id")
 
 // handleShowEventSchema is the handler to show event schema.
 func (s *Server) handleBinAuth() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		bid, err := utils.ExtractBinIDFromPathVar(r)
+	return func(resp http.ResponseWriter, req *http.Request) {
+		bid, err := utils.ExtractBinIDFromPathVar(req)
 		if err != nil {
-			s.resp.HTMLError(r, w, http.StatusBadRequest, "invalid_bin_id", err)
+			s.resp.HTMLError(req, resp, http.StatusBadRequest, "invalid_bin_id", err)
 			return
 		}
 
-		err = r.ParseForm()
+		err = req.ParseForm()
 		if err != nil {
-			s.resp.HTMLError(r, w, http.StatusBadRequest, "cant_parse_form", err)
+			s.resp.HTMLError(req, resp, http.StatusBadRequest, "cant_parse_form", err)
 			return
 		}
 
-		pass := r.Form.Get("password")
+		pass := req.Form.Get("password")
 		if pass == "" {
-			s.resp.HTMLError(r, w, http.StatusBadRequest, "empty_password", fmt.Errorf("empty password"))
+			s.resp.HTMLError(req, resp, http.StatusBadRequest, "empty_password", ErrEmptyPassword)
 			return
 		}
 
 		bin, err := s.store.GetBin(*bid, pass)
 		if err != nil {
-			s.resp.HTMLError(r, w, http.StatusBadRequest, "cant_get_bin", err)
+			s.resp.HTMLError(req, resp, http.StatusBadRequest, "cant_get_bin", err)
 			return
 		}
 		if bin == nil {
-			s.resp.HTMLError(r, w, http.StatusNotFound, "no_bin_by_id", fmt.Errorf("no bin found by id"))
+			s.resp.HTMLError(req, resp, http.StatusNotFound, "no_bin_by_id", ErrBinNotFoundByID)
 			return
 		}
 
-		http.SetCookie(w, utils.PasswordCookie(*bid, pass))
+		http.SetCookie(resp, utils.PasswordCookie(*bid, pass))
 
 		log.Infof("bin authed: %s", bid.String())
 
-		http.Redirect(w, r, fmt.Sprintf("/%s", bid.String()), http.StatusFound)
+		http.Redirect(resp, req, fmt.Sprintf("/%s", bid.String()), http.StatusFound)
 	}
 }

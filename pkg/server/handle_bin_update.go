@@ -3,41 +3,42 @@ package server
 import (
 	"configBin/pkg/server/utils"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // handleBinUpdate is the handler to update a bin.
 func (s *Server) handleBinUpdate() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		bid, err := utils.ExtractBinIDFromPathVar(r)
+	return func(resp http.ResponseWriter, req *http.Request) {
+		binID, err := utils.ExtractBinIDFromPathVar(req)
 		if err != nil {
-			s.resp.HTMLError(r, w, http.StatusBadRequest, "invalid_bin_id", err)
+			s.resp.HTMLError(req, resp, http.StatusBadRequest, "invalid_bin_id", err)
 			return
 		}
 
-		pass := utils.ReadPasswordCookie(r, *bid)
+		pass := utils.ReadPasswordCookie(req, *binID)
 
-		err = r.ParseForm()
+		err = req.ParseForm()
 		if err != nil {
-			s.resp.HTMLError(r, w, http.StatusBadRequest, "cant_parse_form", err)
+			s.resp.HTMLError(req, resp, http.StatusBadRequest, "cant_parse_form", err)
 			return
 		}
 
-		unencryptedData := r.Form.Get("content")
+		unencryptedData := req.Form.Get("content")
 		if unencryptedData == "" {
-			s.resp.HTMLError(r, w, http.StatusBadRequest, "no_content", fmt.Errorf("content is empty"))
+			s.resp.HTMLError(req, resp, http.StatusBadRequest, "no_content", ErrEmptyContent)
 			return
 		}
 
-		err = s.store.UpdateBin(*bid, pass, unencryptedData)
+		err = s.store.UpdateBin(*binID, pass, unencryptedData)
 		if err != nil {
-			s.resp.HTMLError(r, w, http.StatusBadRequest, "cant_update_bin", err)
+			s.resp.HTMLError(req, resp, http.StatusBadRequest, "cant_update_bin", err)
 			return
 		}
 
-		log.Infof("bin updated: %s", bid.String())
+		log.Infof("bin updated: %s", binID.String())
 
-		http.Redirect(w, r, fmt.Sprintf("/%s", bid.String()), http.StatusFound)
+		http.Redirect(resp, req, fmt.Sprintf("/%s", binID.String()), http.StatusFound)
 	}
 }

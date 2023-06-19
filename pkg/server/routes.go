@@ -1,5 +1,16 @@
 package server
 
+import (
+	"errors"
+)
+
+var (
+	ErrEmptyUUID     = errors.New("empty uuid")
+	ErrEmptyPassword = errors.New("empty password")
+	ErrEmptyContent  = errors.New("empty content")
+	ErrInvalidBinID  = errors.New("invalid bin id")
+)
+
 func (s *Server) routes() {
 	s.router.
 		HandleFunc("/liveness", s.logRequest(s.handleLiveness())).
