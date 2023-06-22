@@ -1,28 +1,26 @@
 package server_test
 
 import (
-    "github.com/google/uuid"
-    log "github.com/sirupsen/logrus"
-    "github.com/stretchr/testify/assert"
     "net/http"
     "net/http/httptest"
     "testing"
+
+    "github.com/stretchr/testify/assert"
 )
 
 func TestHandleBinAuth(t *testing.T) {
-    srv, store, err := NewTestingServer("./test.sqlite")
+    srv, store, err := NewTestingServer("./TestHandleBinAuth.sqlite")
     assert.NoError(t, err)
-
-    binID := uuid.New().String()
-    err = store.CreateBin(uuid.MustParse(binID), "test", "test_content")
-    assert.NoError(t, err)
-    log.Warnf("binID: %s", binID)
+    t.Parallel()
 
     // Test case: Successful bin authentication
     t.Run("successful bin authentication", func(t *testing.T) {
+        t.Parallel()
+        binID := createBinForTest(t, store, "test", "test_content")
+
         req := requestWithForm(formRequestSpec{
             method:   "POST",
-            path:     "/" + binID + "/auth",
+            path:     "/" + binID.String() + "/auth",
             formData: "password=test",
         })
         resp := httptest.NewRecorder()
@@ -30,11 +28,13 @@ func TestHandleBinAuth(t *testing.T) {
         srv.ServeHTTP(resp, req)
 
         assert.Equal(t, http.StatusFound, resp.Code)
-        assert.Equal(t, "/"+binID, resp.Header().Get("Location"))
+        assert.Equal(t, "/"+binID.String(), resp.Header().Get("Location"))
     })
 
     // Test case: Invalid bin ID
     t.Run("invalid bin id", func(t *testing.T) {
+        t.Parallel()
+
         req := requestWithForm(formRequestSpec{
             method:   "POST",
             path:     "/invalid/auth",
@@ -50,6 +50,8 @@ func TestHandleBinAuth(t *testing.T) {
 
     // Test case: Not existed bin ID
     t.Run("not existed bin id", func(t *testing.T) {
+        t.Parallel()
+
         req := requestWithForm(formRequestSpec{
             method:   "POST",
             path:     "/00000000-0000-0000-0000-000000000000/auth",
@@ -65,9 +67,12 @@ func TestHandleBinAuth(t *testing.T) {
 
     // Test case: Missing password
     t.Run("missing password", func(t *testing.T) {
+        t.Parallel()
+        binID := createBinForTest(t, store, "test", "test_content")
+
         req := requestWithForm(formRequestSpec{
             method:   "POST",
-            path:     "/" + binID + "/auth",
+            path:     "/" + binID.String() + "/auth",
             formData: "text=test_content",
         })
         resp := httptest.NewRecorder()
@@ -80,9 +85,12 @@ func TestHandleBinAuth(t *testing.T) {
 
     // Test case: Wrong password
     t.Run("wrong password", func(t *testing.T) {
+        t.Parallel()
+        binID := createBinForTest(t, store, "test", "test_content")
+
         req := requestWithForm(formRequestSpec{
             method:   "POST",
-            path:     "/" + binID + "/auth",
+            path:     "/" + binID.String() + "/auth",
             formData: "password=wrong_password",
         })
         resp := httptest.NewRecorder()

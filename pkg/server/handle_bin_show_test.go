@@ -1,23 +1,25 @@
 package server_test
 
 import (
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHandleBinShow(t *testing.T) {
-	srv, store, err := NewTestingServer("./test.sqlite")
+	srv, store, err := NewTestingServer("./TestHandleBinShow.sqlite")
 	assert.NoError(t, err)
-
-	binID := uuid.New()
-	err = store.CreateBin(binID, "test", "test_content")
-	assert.NoError(t, err)
+	t.Parallel()
 
 	// Test case: Successful bin show
 	t.Run("successful bin show", func(t *testing.T) {
+		t.Parallel()
+
+		binID := createBinForTest(t, store, "test", "test_content")
+
 		req := requestWithFormAndCookie(formRequestSpec{
 			method:         "GET",
 			path:           "/" + binID.String(),
@@ -34,6 +36,10 @@ func TestHandleBinShow(t *testing.T) {
 
 	// Test case: Invalid bin ID
 	t.Run("invalid bin id", func(t *testing.T) {
+		t.Parallel()
+
+		binID := createBinForTest(t, store, "test", "test_content")
+
 		req := requestWithFormAndCookie(formRequestSpec{
 			method:         "GET",
 			path:           "/invalid",
@@ -50,6 +56,8 @@ func TestHandleBinShow(t *testing.T) {
 
 	// Test case: Not existed bin ID
 	t.Run("not existed bin id", func(t *testing.T) {
+		t.Parallel()
+
 		req := requestWithFormAndCookie(formRequestSpec{
 			method:         "GET",
 			path:           "/00000000-0000-0000-0000-000000000000",
@@ -66,6 +74,10 @@ func TestHandleBinShow(t *testing.T) {
 
 	// Test case: Missing password cookie
 	t.Run("missing password cookie", func(t *testing.T) {
+		t.Parallel()
+
+		binID := createBinForTest(t, store, "test", "test_content")
+
 		req := requestWithFormAndCookie(formRequestSpec{
 			method:         "GET",
 			path:           "/" + binID.String(),

@@ -3,16 +3,18 @@ package server_test
 import (
     "encoding/base64"
     "fmt"
-    "github.com/google/uuid"
-    "github.com/stretchr/testify/assert"
     "net/http"
     "net/http/httptest"
     "testing"
+
+    "github.com/google/uuid"
+    "github.com/stretchr/testify/assert"
 )
 
 func TestHandleAPIGetBin(t *testing.T) {
-    srv, store, err := NewTestingServer("./test.sqlite")
+    srv, store, err := NewTestingServer("./TestHandleAPIGetBin.sqlite")
     assert.NoError(t, err)
+    t.Parallel()
 
     binID := uuid.New()
     binPass := "test:@\""
@@ -22,7 +24,9 @@ func TestHandleAPIGetBin(t *testing.T) {
 
     // Test case: Successful bin retrieval
     t.Run("successful bin retrieval", func(t *testing.T) {
-        req, _ := http.NewRequest("GET", "/api/v1/"+binID.String(), nil)
+        t.Parallel()
+
+        req, _ := http.NewRequest(http.MethodGet, "/api/v1/"+binID.String(), nil)
         req.Header.Add("Authorization", "Basic "+binCredsHeader)
         resp := httptest.NewRecorder()
 
@@ -34,7 +38,9 @@ func TestHandleAPIGetBin(t *testing.T) {
 
     // Test case: Invalid bin ID
     t.Run("invalid bin id", func(t *testing.T) {
-        req, _ := http.NewRequest("GET", "/api/v1/invalid", nil)
+        t.Parallel()
+
+        req, _ := http.NewRequest(http.MethodGet, "/api/v1/invalid", nil)
         req.Header.Add("Authorization", "Basic "+binCredsHeader)
         resp := httptest.NewRecorder()
 
@@ -46,7 +52,9 @@ func TestHandleAPIGetBin(t *testing.T) {
 
     // Test case: Not existed bin ID
     t.Run("not existed bin id", func(t *testing.T) {
-        req, _ := http.NewRequest("GET", "/api/v1/00000000-0000-0000-0000-000000000000", nil)
+        t.Parallel()
+
+        req, _ := http.NewRequest(http.MethodGet, "/api/v1/00000000-0000-0000-0000-000000000000", nil)
         req.Header.Add("Authorization", "Basic "+binCredsHeader)
         resp := httptest.NewRecorder()
 
@@ -58,7 +66,9 @@ func TestHandleAPIGetBin(t *testing.T) {
 
     // Test case: Missing password
     t.Run("missing password", func(t *testing.T) {
-        req, _ := http.NewRequest("GET", "/api/v1/"+binID.String(), nil)
+        t.Parallel()
+
+        req, _ := http.NewRequest(http.MethodGet, "/api/v1/"+binID.String(), nil)
         resp := httptest.NewRecorder()
 
         srv.ServeHTTP(resp, req)
@@ -69,7 +79,9 @@ func TestHandleAPIGetBin(t *testing.T) {
 
     // Test case: Invalid password
     t.Run("invalid password", func(t *testing.T) {
-        req, _ := http.NewRequest("GET", "/api/v1/"+binID.String(), nil)
+        t.Parallel()
+
+        req, _ := http.NewRequest(http.MethodGet, "/api/v1/"+binID.String(), nil)
         req.Header.Add("Authorization", "Basic bm90OnZhbGlk")
         resp := httptest.NewRecorder()
 

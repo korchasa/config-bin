@@ -1,18 +1,19 @@
 package pkg
 
 import (
-    "github.com/google/uuid"
-    "time"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type Bin struct {
-    ID        uuid.UUID
-    Data      string
-    Version   int
-    CreatedAt time.Time
-    History   []Bin
+	ID        uuid.UUID
+	Data      string
+	Version   int
+	CreatedAt time.Time
+	History   []Bin
 }
 
 func (b *Bin) GetVersion() int {
-    return b.Version
+	return b.Version
 }

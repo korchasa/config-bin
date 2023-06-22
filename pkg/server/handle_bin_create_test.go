@@ -1,19 +1,23 @@
 package server_test
 
 import (
-    "github.com/google/uuid"
-    "github.com/stretchr/testify/assert"
     "net/http"
     "net/http/httptest"
     "testing"
+
+    "github.com/google/uuid"
+    "github.com/stretchr/testify/assert"
 )
 
 func TestHandleBinCreate(t *testing.T) {
-    srv, _, err := NewTestingServer("./test.sqlite")
+    srv, _, err := NewTestingServer("./TestHandleBinCreate.sqlite")
     assert.NoError(t, err)
+    t.Parallel()
 
     // Test case: Successful bin creation
     t.Run("successful bin creation", func(t *testing.T) {
+        t.Parallel()
+
         bid := uuid.New().String()
         req := requestWithForm(formRequestSpec{
             method:   "POST",
@@ -30,6 +34,8 @@ func TestHandleBinCreate(t *testing.T) {
 
     // Test case: Missing UUID
     t.Run("missing uuid", func(t *testing.T) {
+        t.Parallel()
+
         req := requestWithForm(formRequestSpec{
             method:   "POST",
             path:     "/create",
@@ -45,6 +51,8 @@ func TestHandleBinCreate(t *testing.T) {
 
     // Test case: Invalid UUID
     t.Run("invalid uuid", func(t *testing.T) {
+        t.Parallel()
+
         req := requestWithForm(formRequestSpec{
             method:   "POST",
             path:     "/create",
@@ -60,6 +68,8 @@ func TestHandleBinCreate(t *testing.T) {
 
     // Test case: Missing password
     t.Run("missing password", func(t *testing.T) {
+        t.Parallel()
+
         bid := uuid.New().String()
         req := requestWithForm(formRequestSpec{
             method:   "POST",
@@ -76,6 +86,8 @@ func TestHandleBinCreate(t *testing.T) {
 
     // Test case: Missing content
     t.Run("missing content", func(t *testing.T) {
+        t.Parallel()
+
         bid := uuid.New().String()
         req := requestWithForm(formRequestSpec{
             method:   "POST",

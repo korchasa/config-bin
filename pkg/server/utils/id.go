@@ -1,17 +1,21 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
+
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"net/http"
 )
+
+var ErrNoBinIDInPath = errors.New("no bin id in path")
 
 func ExtractBinIDFromPathVar(r *http.Request) (*uuid.UUID, error) {
 	urlVars := mux.Vars(r)
 	bid, exists := urlVars["bid"]
 	if !exists {
-		return nil, fmt.Errorf("no bin id in path")
+		return nil, ErrNoBinIDInPath
 	}
 	id, err := uuid.Parse(bid)
 	if err != nil {

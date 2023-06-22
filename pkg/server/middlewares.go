@@ -1,47 +1,48 @@
 package server
 
 import (
-    log "github.com/sirupsen/logrus"
-    "net/http"
-    "time"
+	"net/http"
+	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
-func (s *Server) logRequest(h http.HandlerFunc) http.HandlerFunc {
-    return func(rw http.ResponseWriter, r *http.Request) {
-        start := time.Now()
+func (s *Server) logRequest(handlerFunc http.HandlerFunc) http.HandlerFunc {
+	return func(resp http.ResponseWriter, req *http.Request) {
+		start := time.Now()
 
-        uri := r.RequestURI
-        method := r.Method
-        lrw := NewLoggingResponseWriter(rw)
-        s.metrics.IncRequestsCount()
-        h(lrw, r)
-        duration := time.Since(start)
+		uri := req.RequestURI
+		method := req.Method
+		lrw := NewLoggingResponseWriter(resp)
+		s.metrics.IncRequestsCount()
+		handlerFunc(lrw, req)
+		duration := time.Since(start)
 
-        if lrw.statusCode >= 200 && lrw.statusCode <= 400 {
-            s.metrics.IncSuccessfulRequestsCount(lrw.statusCode)
-            s.metrics.ObserveSuccessfulRequestDuration(duration)
-        } else {
-            s.metrics.IncFailedRequestsCount(lrw.statusCode)
-        }
-        log.WithFields(
-            log.Fields{
-                "method":   method,
-                "duration": duration,
-            },
-        ).Infof("Request %s", uri)
-    }
+		if lrw.statusCode >= 200 && lrw.statusCode <= 400 {
+			s.metrics.IncSuccessfulRequestsCount(lrw.statusCode)
+			s.metrics.ObserveSuccessfulRequestDuration(duration)
+		} else {
+			s.metrics.IncFailedRequestsCount(lrw.statusCode)
+		}
+		log.WithFields(
+			log.Fields{
+				"method":   method,
+				"duration": duration,
+			},
+		).Infof("Request %s", uri)
+	}
 }
 
-type loggingResponseWriter struct {
-    http.ResponseWriter
-    statusCode int
+type LoggingResponseWriter struct {
+	http.ResponseWriter
+	statusCode int
 }
 
-func NewLoggingResponseWriter(w http.ResponseWriter) *loggingResponseWriter {
-    return &loggingResponseWriter{w, http.StatusOK}
+func NewLoggingResponseWriter(w http.ResponseWriter) *LoggingResponseWriter {
+	return &LoggingResponseWriter{w, http.StatusOK}
 }
 
-func (lrw *loggingResponseWriter) WriteHeader(code int) {
-    lrw.statusCode = code
-    lrw.ResponseWriter.WriteHeader(code)
+func (lrw *LoggingResponseWriter) WriteHeader(code int) {
+	lrw.statusCode = code
+	lrw.ResponseWriter.WriteHeader(code)
 }

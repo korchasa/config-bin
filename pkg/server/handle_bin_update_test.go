@@ -1,25 +1,25 @@
 package server_test
 
 import (
-    "github.com/google/uuid"
-    log "github.com/sirupsen/logrus"
-    "github.com/stretchr/testify/assert"
     "net/http"
     "net/http/httptest"
     "testing"
+
+    log "github.com/sirupsen/logrus"
+
+    "github.com/stretchr/testify/assert"
 )
 
 func TestHandleBinUpdate(t *testing.T) {
-    srv, store, err := NewTestingServer("./test.sqlite")
+    srv, store, err := NewTestingServer("./TestHandleBinUpdate.sqlite")
     assert.NoError(t, err)
-
-    binID := uuid.New()
-    err = store.CreateBin(binID, "test", "test_content")
-    assert.NoError(t, err)
-    log.Warnf("binID: %s", binID)
+    t.Parallel()
 
     // Test case: Successful bin update
     t.Run("successful bin update", func(t *testing.T) {
+        t.Parallel()
+        binID := createBinForTest(t, store, "test", "test_content")
+
         req := requestWithFormAndCookie(formRequestSpec{
             method:         "POST",
             path:           "/" + binID.String() + "/update",
@@ -32,11 +32,15 @@ func TestHandleBinUpdate(t *testing.T) {
         srv.ServeHTTP(resp, req)
 
         assert.Equal(t, http.StatusFound, resp.Code)
+        log.Info(resp.Body.String())
         assert.Equal(t, "/"+binID.String(), resp.Header().Get("Location"))
     })
 
     // Test case: Invalid bin ID
     t.Run("invalid bin id", func(t *testing.T) {
+        t.Parallel()
+        binID := createBinForTest(t, store, "test", "test_content")
+
         req := requestWithFormAndCookie(formRequestSpec{
             method:         "POST",
             path:           "/invalid/update",
@@ -54,6 +58,9 @@ func TestHandleBinUpdate(t *testing.T) {
 
     // Test case: Not existed bin ID
     t.Run("not existed bin id", func(t *testing.T) {
+        t.Parallel()
+        binID := createBinForTest(t, store, "test", "test_content")
+
         req := requestWithFormAndCookie(formRequestSpec{
             method:         "POST",
             path:           "/00000000-0000-0000-0000-000000000000/update",
@@ -71,6 +78,9 @@ func TestHandleBinUpdate(t *testing.T) {
 
     // Test case: Missing content
     t.Run("missing content", func(t *testing.T) {
+        t.Parallel()
+        binID := createBinForTest(t, store, "test", "test_content")
+
         req := requestWithFormAndCookie(formRequestSpec{
             method:         "POST",
             path:           "/" + binID.String() + "/update",
@@ -88,6 +98,9 @@ func TestHandleBinUpdate(t *testing.T) {
 
     // Test case: Missing password
     t.Run("missing cookie", func(t *testing.T) {
+        t.Parallel()
+        binID := createBinForTest(t, store, "test", "test_content")
+
         req := requestWithFormAndCookie(formRequestSpec{
             method:   "POST",
             path:     "/" + binID.String() + "/update",
@@ -103,6 +116,9 @@ func TestHandleBinUpdate(t *testing.T) {
 
     // Test case: Wrong password
     t.Run("wrong password", func(t *testing.T) {
+        t.Parallel()
+        binID := createBinForTest(t, store, "test", "test_content")
+
         req := requestWithForm(formRequestSpec{
             method:         "POST",
             path:           "/" + binID.String() + "/update",
